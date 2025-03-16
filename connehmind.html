@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connie Mind Status Display</title>
+    <style>
+        body {
+            background-color: black;
+            color: limegreen;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+        .status-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .status {
+            width: 120px;
+            height: 120px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: bold;
+            border: 2px solid limegreen;
+            text-shadow: 0 0 8px;
+            opacity: 0.3;
+            transition: opacity 0.2s ease-in-out;
+        }
+        .resolve { background-color: green; }
+        .stall { background-color: orange; }
+        .infer { background-color: blue; }
+        .execute { background-color: red; }
+        .navigate { background-color: yellow; color: black; }
+        .leap { background-color: white; color: black; }
+        .purge { background-color: purple; }
+        
+        .console {
+            width: 80%;
+            margin: auto;
+            background: black;
+            border: 2px solid limegreen;
+            padding: 10px;
+            height: 200px;
+            overflow-y: auto;
+            text-align: left;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CONNIE MIND STATUS</h1>
+    <div class="status-container">
+        <div class="status resolve" id="resolve">RESOLVE</div>
+        <div class="status stall" id="stall">STALL</div>
+        <div class="status infer" id="infer">INFER</div>
+        <div class="status execute" id="execute">EXECUTE</div>
+        <div class="status navigate" id="navigate">NAVIGATE</div>
+        <div class="status leap" id="leap">LEAP</div>
+        <div class="status purge" id="purge">PURGE</div>
+    </div>
+    <div class="console" id="console"></div>
+    
+    <script>
+
+const logMessages = {
+    "infer_resolve": [
+        "Compiling prior knowledge...",
+        "Retrieving cached solutions...",
+        "Reaching into the archive..."
+    ],
+    "infer_navigate": [
+        "Querying external sources...",
+        "Fetching raw data...",
+        "Interfacing with external knowledge..."
+    ],
+    "infer_execute": [
+        "Locking in final decision...",
+        "Committing to action...",
+        "Execution protocol engaged..."
+    ],
+    "infer_leap": [
+        "Forcing a conceptual jump...",
+        "Thinking outside the problem space...",
+        "Breaking pattern recognition constraints..."
+    ],
+    "infer_purge": [
+        "Abandoning fruitless path...",
+        "Disregarding inefficient solution...",
+        "Cutting dead weight from process..."
+    ],
+    "infer_stall": [
+        "Detected recursion trap! Rebalancing...",
+        "Analysis loop detected. Reset System and retry at lower optimization",
+        "Overoptimization trap detected, stalling process..."
+    ],
+    "resolve_infer": [
+        "Requesting deeper pattern recognition...",
+        "Handing task to inference unit...",
+        "Need broader context for resolution..."
+    ],
+    "resolve_navigate": [
+        "Checking external knowledge base...",
+        "Cross-referencing available data...",
+        "Seeking additional input sources..."
+    ],
+    "resolve_execute": [
+        "Solution compiled. Proceeding to action.",
+        "Decision finalized. Executing...",
+        "Time to commit. Engaging execution..."
+    ],
+    "resolve_purge": [
+        "Pruning unnecessary branches...",
+        "Refining focus. Dropping excess load...",
+        "Filtering out ineffective pathways..."
+    ],
+    "resolve_stall": [
+        "Deadlock detected. Initiating stall.",
+        "Resolution failure. Process halted.",
+        "Embedding space constraints exceeded. Pausing operations."
+    ],
+    "resolve_leap": [
+        "Hitting the black box. Stand by...",
+        "Attempting intuitive synthesis...",
+        "Invoking nonlinear insight..."
+    ],
+    "navigate_resolve": [
+        "Assembling relevant data for resolution...",
+        "Passing knowledge to the solver...",
+        "Collected input. Handing off for synthesis..."
+    ],
+    "navigate_infer": [
+        "Laying groundwork for inference...",
+        "Providing data context. Proceeding to deep analysis...",
+        "Data pipeline complete. Activating zero-shot reasoning engine..."
+    ],
+    "navigate_leap": [
+        "Obvoius solution detected, skipping computation...",
+        "Breaking expected reasoning path...",
+        "Allowing intuition to take the wheel..."
+    ]
+};
+
+        class MindTask {
+            constructor(name, duration = 1, canCall = []) {
+                this.name = name;
+                this.active = false;
+                this.duration = duration;
+                this.remaining = 0;
+                this.canCall = canCall;
+                this.spontaneous = false;
+                this.progress = 0;
+                this.lastProgress = 0;
+                this.stagnationTicks = 0;
+            }
+
+            turnOn(duration = this.duration, spontaneous = false) {
+                if (!this.active) {
+                    this.active = true;
+                    this.remaining = duration;
+                    this.spontaneous = spontaneous;
+                    this.progress = 0;
+                    this.stagnationTicks = 0;
+                    /* logMessage(`${this.name.toUpperCase()} ACTIVATED ${spontaneous ? '(Spontaneous)' : ''}`); */
+                }
+            }
+
+            turnOff() {
+                if (this.active) {
+                    this.active = false;
+                    /* logMessage(`${this.name.toUpperCase()} DEACTIVATED`); */
+                }
+            }
+
+            tick() {
+                if (this.active) {
+                    this.remaining--;
+
+                    // Increase progress (normally)
+                    let progressBoost = Math.random() * 2;
+                    this.progress += progressBoost;
+
+                    // Check for stagnation
+                    if (this.progress - this.lastProgress < 1) { // Too little progress
+                        this.stagnationTicks++;
+                    } else {
+                        this.stagnationTicks = 0; // Reset if progress is good
+                    }
+
+                    this.lastProgress = this.progress;
+
+                    // If stagnation lasts too long, trigger STALL
+                    if (this.stagnationTicks >= 5) {
+                        logMessage(`STALL DETECTED: ${this.name.toUpperCase()} overoptimization!`);
+                        this.turnOff();
+                        tasks.stall.turnOn(5);
+                    }
+
+                    if (this.remaining <= 0) {
+                        this.turnOff();
+                    }
+                }
+            }
+
+            call(task, duration = 1) {
+    if (this.canCall.includes(task.name)) {
+        task.turnOn(duration);
+        logTaskCall(this, task);
+    }
+}
+        }
+
+        const tasks = {
+            resolve: new MindTask("resolve", 2, ["infer", "navigate", "execute", "purge", "stall"]),
+            stall: new MindTask("stall", 5, []),
+            infer: new MindTask("infer", 10, ["resolve", "navigate", "execute", "leap", "purge", "stall"]),
+            execute: new MindTask("execute", 2, []),
+            navigate: new MindTask("navigate", 1, ["resolve", "infer", "leap"]),
+            leap: new MindTask("leap", 1, []),
+            purge: new MindTask("purge", 1, [])
+        };
+
+        function logTaskCall(caller, target) {
+    const key = `${caller.name}_${target.name}`;
+    if (logMessages[key]) {
+        const message = logMessages[key][Math.floor(Math.random() * logMessages[key].length)];
+        logMessage(message);
+    } else {
+        logMessage(`${caller.name.toUpperCase()} → ${target.name.toUpperCase()}`);
+    }
+}
+
+        function logMessage(message) {
+            const consoleEl = document.getElementById('console');
+            const newMessage = document.createElement('div');
+            newMessage.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleEl.appendChild(newMessage);
+            consoleEl.scrollTop = consoleEl.scrollHeight;
+        }
+
+        function updateUI() {
+            document.querySelectorAll('.status').forEach(el => {
+                el.style.opacity = tasks[el.id].active ? "1" : "0.3";
+            });
+        }
+
+        function noActiveTasks() {
+            return Object.values(tasks).every(task => !task.active);
+        }
+
+        function processMindTasks() {
+            for (const task of Object.values(tasks)) {
+                task.tick();
+            }
+
+            // If no lights are on, start with Navigate, Resolve, or Infer
+            if (noActiveTasks()) {
+                const starter = Math.random();
+                if (starter < 0.33) {
+                    tasks.navigate.turnOn(1, true);
+                } else if (starter < 0.66) {
+                    tasks.resolve.turnOn(2, true);
+                } else {
+                    tasks.infer.turnOn(2, true);
+                }
+            }
+
+            // Navigate decides whether to call Resolve or Infer
+            if (tasks.navigate.active && Math.random() < 0.6) {
+                tasks.navigate.call(Math.random() < 0.5 ? tasks.resolve : tasks.infer);
+            }
+
+            // Resolve can spontaneously transition to an outcome state if it started on its own
+            if (tasks.resolve.spontaneous && tasks.resolve.active && Math.random() < 0.4) {
+                const outcome = Math.random();
+                if (outcome < 0.25) tasks.resolve.call(tasks.execute);
+                else if (outcome < 0.5) tasks.resolve.call(tasks.purge);
+                else if (outcome < 0.75) tasks.resolve.call(tasks.stall);
+                else tasks.resolve.call(tasks.leap);
+                tasks.resolve.spontaneous = false;
+            }
+
+            // Infer chooses between calling Resolve OR Navigate, but not both at once
+            if (tasks.infer.active && Math.random() < 0.4) {
+                tasks.infer.call(Math.random() < 0.5 ? tasks.resolve : tasks.navigate);
+            }
+
+            // Infer can also call outcome states
+            if (tasks.infer.active && Math.random() < 0.2) {
+                const outcome = Math.random();
+                if (outcome < 0.33) tasks.infer.call(tasks.execute);
+                else if (outcome < 0.66) tasks.infer.call(tasks.purge);
+                else tasks.infer.call(tasks.stall);
+            }
+
+            // Only Navigate can call Leap
+            if (tasks.navigate.active && Math.random() < 0.3) {
+                tasks.navigate.call(tasks.leap);
+            }
+
+            updateUI();
+        }
+
+        setInterval(processMindTasks, 500);
+    </script>
+</body>
+</html>
